@@ -1,34 +1,25 @@
 import React from 'react';
-import Sidenavguest from './Sidenavguest';
-import Navbarguest from './Navbarguest';
 import Admintop from '../admin/Admintop';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import { Card, CardContent, Typography } from '@mui/material';
 import Stack from '@mui/material/Stack';
-import '../../Dash.css';
 import Linechart from '../../components/Charts/Linechart';
 import Areabump from '../../components/Charts/Areabump';
 import Barchart from '../../components/Charts/Barchart';
 import Footer from '../../components/Footer';
-import Sensorlistuser from '../user/Sensorlistuser';
+import Sensorlistuser from './Sensorlistuser';
 
 const GuestDashboard = () => {
     return (
         <div style={{ backgroundColor: '#f3f4f7' }}>
-            {/* Top Navbar */}
-            <Navbarguest />
-
-            <Box height={30} />
+         
 
             {/* Main Layout with Sidebar and Content */}
             <Box sx={{ display: 'flex' }}>
 
-                {/* Sidebar */}
-                <Sidenavguest />
 
                 <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-                    <Box height={20} />
 
                     {/* Admin Top Summary */}
                     <Admintop />
@@ -40,14 +31,14 @@ const GuestDashboard = () => {
 
                         {/* Line Chart */}
                         <Grid item xs={12} md={6}>
-                            <Card sx={{ height: '70vh' }}>
+                            <Card sx={{  height: { xs: '400px', md: '500px', lg: '500px' } }}>
                                 <Linechart />
                             </Card>
                         </Grid>
 
                         {/* Area Bump Chart */}
                         <Grid item xs={12} md={6}>
-                            <Card sx={{ height: '70vh' }}>
+                            <Card sx={{  height: { xs: '400px', md: '500px', lg: '500px' } }}>
                                 <Areabump />
                             </Card>
                         </Grid>
@@ -61,7 +52,7 @@ const GuestDashboard = () => {
                             <Stack spacing={3}>
 
                                 {/* Bar Chart */}
-                                <Card sx={{ height: '70vh' }}>
+                                <Card sx={{  height: { xs: '400px', md: '500px', lg: '500px' } }}>
                                     <Barchart />
                                 </Card>
 
@@ -104,8 +95,7 @@ const GuestDashboard = () => {
                 </Box>
             </Box>
 
-            {/* Footer */}
-            <Footer />
+          
         </div>
     );
 };

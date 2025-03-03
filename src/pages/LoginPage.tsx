@@ -1,105 +1,85 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import axios from 'axios';
-import {
-    MDBBtn,
-    MDBContainer,
-    MDBRow,
-    MDBCol,
-    MDBCard,
-    MDBCardBody,
-    MDBInput,
-    MDBIcon,
-    MDBCheckbox
-} from 'mdb-react-ui-kit';
-
-interface FormValues {
-
-    email: string;
-    password: string;
-
-}
+import { MDBBtn, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
+import { LoginCredentials } from '../service/types/auth.types';
+import authStore from '../service/services/authStore.service';
 
 const LoginPage: React.FC = () => {
-    const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors }, watch } = useForm<FormValues>();
-    const onSubmit: SubmitHandler<FormValues> = async (data) => {
-        try {
-            const response = await axios.post('https://my-json-server.typicode.com/typicode/demo/posts', data);
-            console.log('Response:', response.data);
+  const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginCredentials>();
 
-            // If login is successful, navigate to a different page
-            if (response.status === 200) {
-                navigate('/'); // Change '/dashboard' to the route you want
-            }
-        } catch (error) {
-            console.error('Error:', error.response?.data || error.message);
-            // You can also display an error message to the user here
-        }
-    };
-    return (
-        <MDBContainer fluid>
+  const {  login } = authStore((state) => ({
+    login: state.login,
+  }));
 
-            <MDBRow className='d-flex justify-content-center align-items-center h-100'>
-                <MDBCol col='12'>
-
-                    <MDBCard className='bg-white my-5 mx-auto' style={{ borderRadius: '1rem', maxWidth: '500px' }}>
-                        <MDBCardBody className='p-5 w-100 d-flex flex-column'>
-
-                            <h2 className="fw-bold mb-2 text-center">Login</h2>
-                            <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column align-items-center">
-                                <p className="text-white-50 mb-3">Please enter your login and password!</p>
-
-                                <MDBInput wrapperClass='mb-4 w-100' label='Email address' id='formControlLg' type='email' size="lg"
-                                    {...register("email", {
-                                        required: "Email is required",
-                                        pattern: {
-                                            value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                                            message: "Invalid email address"
-                                        }
-                                    })} />
-                                {errors.email && <p className="text-danger">{errors.email.message}</p>}
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
 
-                                <MDBInput wrapperClass='mb-4 w-100' label='Password' id='formControlLg' type='password' size="lg"
+  // ✅ Regular User Login
+  const onSubmit: SubmitHandler<LoginCredentials> = async (data) => {
+    setLoading(true);
+    setErrorMessage(null);
 
-                                    {...register("password", {
-                                        required: "Password is required",
-                                        minLength: {
-                                            value: 8,
-                                            message: "Password must be at least 8 characters"
-                                        }
-                                    })}
-                                />
-                                {errors.password && <p className="text-danger">{errors.password.message}</p>}
+    try {
+      const response = await login(data);
+      if (response.success) {
+        navigate('/admin'); // Redirect on successful login
+      } else {
+        setErrorMessage(response.message || 'Invalid credentials');
+      }
+    } catch (error) {
+      setErrorMessage('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  return (
+    <MDBContainer fluid>
+      <MDBRow className="d-flex justify-content-center align-items-center h-100">
+        <MDBCol col="12">
+          <MDBCard className="bg-white my-5 mx-auto" style={{ borderRadius: '1rem', maxWidth: '500px' }}>
+            <MDBCardBody className="p-5 w-100 d-flex flex-column">
+              <h2 className="fw-bold mb-2 text-center">Login</h2>
 
-                                <div className="d-flex justify-content-between mx-4 mb-4">
- 
+              <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column align-items-center">
+                <MDBInput
+                  wrapperClass="mb-4 w-100"
+                  label="Email address"
+                  type="email"
+                  {...register('email', { required: 'Email is required' })}
+                />
+                {errors.email && <p className="text-danger">{errors.email.message}</p>}
 
-                                    <a href="#!">Forgot password?</a>
-                                </div>
-                                <MDBBtn size='lg'>
-                                    Login
-                                </MDBBtn>
-                            </form>
+                <MDBInput
+                  wrapperClass="mb-4 w-100"
+                  label="Password"
+                  type="password"
+                  {...register('password', { required: 'Password is required' })}
+                />
+                {errors.password && <p className="text-danger">{errors.password.message}</p>}
 
-                            <hr className="my-4" />
+                {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
-                            <MDBBtn className="mb-4 w-100" size="lg" style={{ backgroundColor: '#3b5998' }} onClick={() => navigate("/signup")}>
-                                <MDBIcon fab className="mx-2" />
-                                Not Registered? Sign Up
-                            </MDBBtn>
+                <MDBBtn type="submit" size="lg" className="w-100" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </MDBBtn>
+              </form>
 
-                        </MDBCardBody>
-                    </MDBCard>
+              <hr className="my-4" />
 
-                </MDBCol>
-            </MDBRow>
-
-        </MDBContainer>
-    );
-}
+              {/* Signup Navigation */}
+              <MDBBtn className="mb-4 w-100" size="lg" onClick={() => navigate('/signup')}>
+                Not registered? Register
+              </MDBBtn>
+            </MDBCardBody>
+          </MDBCard>
+        </MDBCol>
+      </MDBRow>
+    </MDBContainer>
+  );
+};
 
 export default LoginPage;

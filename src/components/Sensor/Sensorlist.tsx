@@ -9,85 +9,62 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import { Link } from "react-router-dom";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 
+// Importing UUID package to generate unique IDs
+import { v4 as uuidv4 } from 'uuid';
 
-interface Column {
-  id: 'id' | 'name' | 'description' | 'action';
-  label: string;
-  minWidth?: number;
-  align?: 'center' | 'left' | 'right';
-}
-
-const columns: Column[] = [
+// Define table columns
+const columns = [
   { id: 'id', label: 'ID', minWidth: 50, align: 'center' },
   { id: 'name', label: 'Name', minWidth: 170 },
-  { id: 'description', label: 'Description', minWidth: 200 },
   { id: 'action', label: 'Action', minWidth: 200, align: 'center' },
 ];
 
-interface Data {
-  id: number;
-  name: string;
-  description: string;
-  action?: React.ReactNode; 
-}
-
-function createData(id: number, name: string, description: string): Data {
-
-
-  return { 
-    id,
-    name, 
-    description, 
-    action: (
-      <>
-        <Button variant="outlined" color="primary" size="small" sx={{ mr: 1 }}>View</Button>
-        <Button
-          variant="outlined"
-          color="success"
-          size="small"
-          sx={{ mr: 1 }}
-          component={Link}
-          to="/sensor/edit"
-        >
-          Edit
-        </Button>
-
-        <Button variant="outlined" color="secondary" size="small">Delete</Button>
-      </>
-    ) 
-  };
-}
-
-const rows = [
-  createData(1, 'Temperature Sensor', 'Monitors and records temperature levels.'),
-  createData(2, 'Humidity Sensor', 'Measures and reports the level of humidity.'),
-  createData(3, 'Pressure Sensor', 'Detects and measures pressure changes.'),
-  createData(4, 'Proximity Sensor', 'Detects nearby objects without physical contact.'),
-  createData(5, 'Light Sensor', 'Detects the intensity of ambient light.'),
-  createData(6, 'Motion Sensor', 'Detects motion, commonly used in security systems.'),
-  createData(7, 'Water Sensor', 'Detects the presence of water or liquid.'),
-  createData(8, 'Gas Sensor', 'Detects the presence of various gases in the air.'),
-  createData(9, 'Smoke Sensor', 'Detects smoke to warn of potential fire.'),
-  createData(10, 'Sound Sensor', 'Detects sound or noise levels.'),
-  createData(11, 'Extra Sensor 1', 'This is a placeholder for testing scroll.'),
-  createData(12, 'Extra Sensor 2', 'This is a placeholder for testing scroll.'),
-  createData(13, 'Extra Sensor 3', 'This is a placeholder for testing scroll.'),
-  createData(14, 'Extra Sensor 4', 'This is a placeholder for testing scroll.'),
-  createData(15, 'Extra Sensor 5', 'This is a placeholder for testing scroll.'),
+// Dummy sensor data with UUID
+const mockSensors = [
+  { id: uuidv4(), name: 'Temperature Sensor' },
+  { id: uuidv4(), name: 'Humidity Sensor' },
+  { id: uuidv4(), name: 'Pressure Sensor' },
+  { id: uuidv4(), name: 'Light Sensor' },
+  { id: uuidv4(), name: 'Motion Sensor' },
+  { id: uuidv4(), name: 'Air Quality Sensor' },
+  { id: uuidv4(), name: 'Soil Moisture Sensor' },
+  { id: uuidv4(), name: 'Sound Sensor' },
+  { id: uuidv4(), name: 'Vibration Sensor' },
+  { id: uuidv4(), name: 'Proximity Sensor' },
 ];
 
-export default function Sensorlist() {
+export default function SensorList() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const [sensorToDelete, setSensorToDelete] = React.useState<string | null>(null);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
+  // Handle pagination
+  const handleChangePage = (event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
+  };
+
+  // Open and close delete confirmation dialog
+  const openDeleteDialog = (sensorId: string) => {
+    setSensorToDelete(sensorId);
+    setOpenDialog(true);
+  };
+  const closeDeleteDialog = () => {
+    setSensorToDelete(null);
+    setOpenDialog(false);
+  };
+
+  // Handle delete (For now, just remove from mock data)
+  const confirmDelete = () => {
+    console.log(`Deleted sensor with ID: ${sensorToDelete}`);
+    closeDeleteDialog();
   };
 
   return (
@@ -102,11 +79,11 @@ export default function Sensorlist() {
                   align={column.align || 'left'}
                   style={{
                     minWidth: column.minWidth,
-                    backgroundColor: '#f5f5f5', 
-                    fontWeight: 'bold', 
-                    position: 'sticky', 
-                    top: 0, 
-                    zIndex: 2, 
+                    backgroundColor: '#f5f5f5',
+                    fontWeight: 'bold',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 2,
                   }}
                 >
                   {column.label}
@@ -115,32 +92,49 @@ export default function Sensorlist() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, rowIndex) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
-                  {columns.map((column) => {
-                    const value = row[column.id as keyof Data];
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.id === 'action' ? value : value}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
+            {mockSensors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((sensor) => (
+              <TableRow hover role="checkbox" tabIndex={-1} key={sensor.id}>
+                <TableCell align="center">{sensor.id}</TableCell>
+                <TableCell>{sensor.name}</TableCell>
+                <TableCell align="center">
+                  <Button variant="outlined" color="primary" size="small" sx={{ mr: 1 }} component={Link} to={`/sensor/read/${sensor.id}`}>
+                    View
+                  </Button>
+                  <Button variant="outlined" color="success" size="small" sx={{ mr: 1 }} component={Link} to={`/sensor/edit/${sensor.id}`}>
+                    Edit
+                  </Button>
+                  <Button variant="outlined" color="secondary" size="small" onClick={() => openDeleteDialog(sensor.id)}>
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={rows.length}
+        count={mockSensors.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDialog} onClose={closeDeleteDialog}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>Are you sure you want to delete this sensor?</DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={confirmDelete} color="secondary">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

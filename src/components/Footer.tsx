@@ -6,7 +6,7 @@ const Footer = () => {
     <div>
         <footer>
                 {/* Footer Section */}
-                <MDBFooter  style={{ backgroundColor: '#6b7785', color: 'black' }} className="text-center text-lg-left">
+                <MDBFooter  style={{ backgroundColor: '#09122C', color: 'white' }} className="text-center text-lg-left">
                     <div
                         className="text-center p-3"
                        

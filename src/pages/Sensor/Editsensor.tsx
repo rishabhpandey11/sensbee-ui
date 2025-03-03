@@ -1,109 +1,177 @@
-import React, { useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { Button, Card, Form } from 'react-bootstrap';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
-function Editsensor() {
-    const [values, setValues] = useState({
-        name: '',
-        description: '',
-        position: '' // Position is now a text input
-    });
+type Column = {
+  name: string;
+  val_type: string;
+  val_unit: string;
+};
 
-    const [error, setError] = useState(null); // Handles form validation errors
+const Editsensor: React.FC = () => {
+  const { id } = useParams(); // Get sensor ID from URL
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const [sensor, setSensor] = useState({
+    name: '',
+    description: '',
+  });
 
-    // Generic handler for all form field changes
-    const handleChange = (e) => {
-        setValues({ ...values, [e.target.name]: e.target.value });
+  const [position, setPosition] = useState('');
+  const [columns, setColumns] = useState<Column[]>([]);
+
+  const [error, setError] = useState<string>('');
+
+  // Fetch sensor details when component mounts
+  useEffect(() => {
+    axios
+      .get(`http://localhost:3000/sensors/${id}`)
+      .then((res) => {
+        const sensorData = res.data;
+        setSensor({
+          name: sensorData.name,
+          description: sensorData.description,
+        });
+        setPosition(sensorData.position.join(', '));
+        setColumns(sensorData.columns || []);
+      })
+      .catch(() => setError('Failed to load sensor details.'));
+  }, [id]);
+
+  // Handle input change for Name, Description, and Position
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSensor({ ...sensor, [name]: value });
+  };
+
+  const handlePositionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPosition(e.target.value);
+  };
+
+  // Handle column input changes
+  const handleColumnChange = (index: number, field: keyof Column, value: string) => {
+    const updatedColumns = [...columns];
+    updatedColumns[index][field] = value;
+    setColumns(updatedColumns);
+  };
+
+  // Add a new column
+  const addColumn = () => {
+    setColumns([...columns, { name: '', val_type: 'FLOAT', val_unit: '' }]);
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!sensor.name || !sensor.description || !position) {
+      setError('Please fill out all required fields');
+      return;
+    }
+
+    const updatedData = {
+      name: sensor.name,
+      description: sensor.description,
+      position: position.split(',').map((coord) => parseFloat(coord.trim())),
+      columns,
     };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError(null); // Reset error message
+    axios
+      .patch(`http://localhost:3000/sensors/${id}`, updatedData)
+      .then(() => navigate(-1)) // Redirect to sensor list
+      .catch(() => setError('Failed to update sensor details.'));
+  };
 
-        // Basic validation: Check if all fields are filled in
-        if (!values.name || !values.description || !values.position) {
-            setError("All fields are required!");
-            return;
-        }
+  return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <Card style={{ width: '35rem', padding: '20px' }}>
+        <Card.Body>
+          <Card.Title>Edit Sensor Details</Card.Title>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        // Prepare post data
-        const postData = {
-            name: values.name,
-            description: values.description,
-            position: values.position
-        };
+          <Form onSubmit={handleSubmit}>
+            {/* Name & Description Section */}
+            <Card className="mb-3 p-3">
+              <Form.Group controlId="formName">
+                <Form.Label>Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="name"
+                  value={sensor.name}
+                  onChange={handleChange}
+                  placeholder="Enter sensor name"
+                />
+              </Form.Group>
 
-        // Send POST request to the API
-        axios.post('http://localhost:3000/sensor_details', postData)
-            .then((res) => {
-                console.log('Data submitted successfully:', res);
-                navigate('/sensor'); // Redirect to sensor list page after successful submit
-            })
-            .catch((err) => {
-                console.log('Error submitting data:', err);
-                setError("Failed to submit sensor data.");
-            });
-    };
-
-    return (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-            <Card style={{ width: '30rem', padding: '20px', borderRadius: '10px', margin: '20px auto' }}>
-                <Card.Body>
-                    <Card.Title style={{ marginBottom: '20px', fontSize: '2rem' }}>Edit Sensor Details</Card.Title>
-
-                    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Error message for validation */}
-
-                    <Form onSubmit={handleSubmit}>
-
-                        {/* Name Section */}
-                        <Form.Group className="mb-3" controlId="formName">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter sensor name"
-                            />
-                        </Form.Group>
-
-                        {/* Description Section */}
-                        <Form.Group className="mb-3" controlId="formDescription">
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="description"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter sensor description"
-                            />
-                        </Form.Group>
-
-                        {/* Position Section (Text Input) */}
-                        <Form.Group className="mb-3" controlId="formPosition">
-                            <Form.Label>Position</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="position"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter position [50.68322, 10.91858]"
-                            />
-                        </Form.Group>
-
-                        {/* Button Section */}
-                        <div className="d-flex justify-content-between">
-                            <Button variant="dark" onClick={() => navigate("/sensor/edit")}>Back</Button> {/* Go back to the previous page */}
-                            <Button variant="success" type="submit">Submit</Button>
-                        </div>
-                    </Form>
-                </Card.Body>
+              <Form.Group controlId="formDescription">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="description"
+                  value={sensor.description}
+                  onChange={handleChange}
+                  placeholder="Enter sensor description"
+                />
+              </Form.Group>
             </Card>
-        </div>
-    );
-}
+
+            {/* Position Section */}
+            <Card className="mb-3 p-3">
+              <Form.Label>Position (Latitude, Longitude)</Form.Label>
+              <Form.Control
+                type="text"
+                value={position}
+                onChange={handlePositionChange}
+                placeholder="Enter position (e.g., 12.34, 56.78)"
+              />
+            </Card>
+
+            {/* Columns Section */}
+            <Card className="mb-3 p-3">
+              <Card.Title>Columns</Card.Title>
+              {columns.map((col, index) => (
+                <div key={index} className="d-flex gap-2 mb-2">
+                  <Form.Control
+                    type="text"
+                    placeholder="Name"
+                    value={col.name}
+                    onChange={(e) => handleColumnChange(index, 'name', e.target.value)}
+                  />
+                  <Form.Control
+                    type="text"
+                    placeholder="Value Type"
+                    value={col.val_type}
+                    onChange={(e) => handleColumnChange(index, 'val_type', e.target.value)}
+                  />
+                  <Form.Control
+                    type="text"
+                    placeholder="Unit"
+                    value={col.val_unit}
+                    onChange={(e) => handleColumnChange(index, 'val_unit', e.target.value)}
+                  />
+                </div>
+              ))}
+              <Button variant="outline-primary" onClick={addColumn}>
+                + Add Column
+              </Button>
+            </Card>
+
+            {/* Actions Section */}
+            <div className="d-flex justify-content-between">
+              <Button variant="dark" onClick={() => navigate(-1)}>
+                Back
+              </Button>
+              <Button variant="success" type="submit">
+                Update
+              </Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
+    </div>
+  );
+};
 
 export default Editsensor;

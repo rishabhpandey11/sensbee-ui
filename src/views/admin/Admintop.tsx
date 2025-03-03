@@ -5,7 +5,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import '../../Dash.css';
 
 const Admintop = () => {
   return (
@@ -19,38 +18,53 @@ const Admintop = () => {
         <Grid item xs={12}>
           <Stack spacing={2} direction="row">
             {/* Card 1: CPU Cores */}
-            <Card sx={{ minWidth: '30%', height: 120 }} className="gradient-green">
+            <Card
+              sx={{
+                minWidth: '30%',
+                height: 120,
+                background: 'linear-gradient(150deg, #4a8206, #83c962)',
+                color: 'white',
+              }}
+            >
               <CardContent>
-                <Typography variant="h5" component="div" sx={{ color: 'white' }}>
-                  CPU Cores
+                <Typography variant="h5" component="div">
+                  Users
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'white' }}>
-                  4
-                </Typography>
+                <Typography variant="body2">20</Typography>
               </CardContent>
             </Card>
 
             {/* Card 2: RAM Total */}
-            <Card sx={{ minWidth: '30%', height: 120 }} className="gradient-blue">
+            <Card
+              sx={{
+                minWidth: '30%',
+                height: 120,
+                background: 'linear-gradient(135deg, #023d65, #7d66cf)',
+                color: 'white',
+              }}
+            >
               <CardContent>
-                <Typography variant="h5" component="div" sx={{ color: 'white' }}>
-                  RAM Total
+                <Typography variant="h5" component="div">
+                  Sensors
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'white' }}>
-                  500MB
-                </Typography>
+                <Typography variant="body2">40</Typography>
               </CardContent>
             </Card>
 
             {/* Card 3: Uptime */}
-            <Card sx={{ minWidth: '30%', height: 120 }} className="gradient-red">
+            <Card
+              sx={{
+                minWidth: '30%',
+                height: 120,
+                background: 'linear-gradient(135deg, #7c0707, #ca6969)',
+                color: 'white',
+              }}
+            >
               <CardContent>
-                <Typography variant="h5" component="div" sx={{ color: 'white' }}>
-                  Uptime
+                <Typography variant="h5" component="div">
+                  Types of Sensors
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'white' }}>
-                  20.4s
-                </Typography>
+                <Typography variant="body2">5</Typography>
               </CardContent>
             </Card>
           </Stack>

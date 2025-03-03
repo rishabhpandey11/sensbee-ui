@@ -9,7 +9,7 @@ import {
     MDBIcon,
     MDBCollapse,
 } from 'mdb-react-ui-kit';
-import backgroundImage from './images/pexels-steve-29612112-min.webp';
+import backgroundImage from './images/image-landingpage.jpg';
 import Stack from 'react-bootstrap/Stack';
 import { Button } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
@@ -60,6 +60,7 @@ const LandingPage: React.FC = () => {
                     className="p-5 text-center bg-image"
                     style={{
                         backgroundImage: `url(${backgroundImage})`,
+                       
                         height: '90vh',
                         width: '100%',
                     }}
@@ -86,7 +87,7 @@ const LandingPage: React.FC = () => {
                                                 backgroundColor: '#1b9e3e',
                                                 boxShadow: 'none', // Remove button shadow
                                             }}
-                                            onClick={() => navigate('/admin')}
+                                            onClick={() => navigate('/login')}
                                         >
                                             Admin
                                         </Button>
@@ -97,7 +98,7 @@ const LandingPage: React.FC = () => {
                                                 backgroundColor: 'black',
                                                 boxShadow: 'none', // Remove button shadow
                                             }}
-                                            onClick={() => navigate('/user')}
+                                            onClick={() => navigate('/login')}
                                         >
                                             User
                                         </Button>

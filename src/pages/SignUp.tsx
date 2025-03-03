@@ -1,21 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigation
-import axios from 'axios';
-import {
-  MDBBtn,
-  MDBContainer,
-  MDBRow,
-  MDBCol,
-  MDBCard,
-  MDBCardBody,
-  MDBCardImage,
-  MDBInput,
-  MDBIcon
-} from 'mdb-react-ui-kit';
-import useAppStore from '../appStore';
+import { useNavigate, Link } from 'react-router-dom';
+import { MDBBtn, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardImage, MDBInput, MDBIcon } from 'mdb-react-ui-kit';
+import authStore from '../service/services/authStore.service';
 
-// Define the shape of form data
 interface FormValues {
   name: string;
   email: string;
@@ -26,46 +14,34 @@ interface FormValues {
 const SignUp: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, watch, trigger } = useForm<FormValues>();
   const navigate = useNavigate();
-  const setUser = useAppStore((state) => state.setUser); // Use useAppStore correctly
-  const [loading, setLoading] = useState(false); // Loading state for submit button
-  const [errorMessage, setErrorMessage] = useState<string>(''); // State for API error message
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const signup = authStore((state) => state.signup);
 
-  // Watch for changes in the password field and trigger revalidation for confirmPassword
   useEffect(() => {
-    const subscription = watch((value, { name }) => {
+    const subscription = watch((_, { name }) => {
       if (name === 'password') trigger('confirmPassword');
     });
     return () => subscription.unsubscribe();
   }, [watch, trigger]);
 
-  // Define the form submission handler
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    setLoading(true); // Set loading state to true
-    setErrorMessage(''); // Clear any previous errors
+    setLoading(true);
+    setErrorMessage('');
 
     try {
-      const response = await axios.post('https://my-json-server.typicode.com/typicode/demo/posts', {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
+      const { name, email, password } = data; // Exclude confirmPassword before sending request
+      const response = await signup({ name, email, password });
 
-      if (response.status === 201) { // Check if the request was successful
-        console.log('Response:', response.data);
-        setUser({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        });
-
-        navigate('/login'); // Navigate to login page
+      if (response.success) {
+        navigate('/login');
       } else {
-        setErrorMessage('Unexpected response status. Please try again.');
+        setErrorMessage(response.message || 'Unexpected error occurred. Please try again.');
       }
-    } catch (error) {
-      setErrorMessage(error.response?.data || 'An error occurred while signing up.');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'An error occurred while signing up.');
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -77,11 +53,9 @@ const SignUp: React.FC = () => {
             <MDBCol md='10' lg='6' className='order-2 order-lg-1 d-flex flex-column align-items-center'>
               <p className="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
 
-              {errorMessage && <p className="text-danger">{errorMessage}</p>} {/* Display error message */}
+              {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
               <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column align-items-center">
-                
-                {/* Name Field */}
                 <div className="d-flex flex-row align-items-center mb-4">
                   <MDBIcon fas icon="user me-3" size='lg' />
                   <MDBInput
@@ -89,20 +63,17 @@ const SignUp: React.FC = () => {
                     id='form1'
                     type='text'
                     className='w-100'
-                    defaultValue=""
                     {...register("name", { required: "Name is required" })}
                   />
                 </div>
                 {errors.name && <p className="text-danger">{errors.name.message}</p>}
 
-                {/* Email Field */}
                 <div className="d-flex flex-row align-items-center mb-4">
                   <MDBIcon fas icon="envelope me-3" size='lg' />
                   <MDBInput
                     label='Your Email'
                     id='form2'
                     type='email'
-                    defaultValue=""
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
@@ -114,14 +85,12 @@ const SignUp: React.FC = () => {
                 </div>
                 {errors.email && <p className="text-danger">{errors.email.message}</p>}
 
-                {/* Password Field */}
                 <div className="d-flex flex-row align-items-center mb-4">
                   <MDBIcon fas icon="lock me-3" size='lg' />
                   <MDBInput
                     label='Password'
                     id='form3'
                     type='password'
-                    defaultValue=""
                     {...register("password", {
                       required: "Password is required",
                       minLength: {
@@ -133,14 +102,12 @@ const SignUp: React.FC = () => {
                 </div>
                 {errors.password && <p className="text-danger">{errors.password.message}</p>}
 
-                {/* Confirm Password Field */}
                 <div className="d-flex flex-row align-items-center mb-4">
                   <MDBIcon fas icon="key me-3" size='lg' />
                   <MDBInput
                     label='Repeat your password'
                     id='form4'
                     type='password'
-                    defaultValue=""
                     {...register("confirmPassword", {
                       required: "Please confirm your password",
                       validate: (value) => value === watch('password') || "Passwords do not match"
@@ -149,7 +116,6 @@ const SignUp: React.FC = () => {
                 </div>
                 {errors.confirmPassword && <p className="text-danger">{errors.confirmPassword.message}</p>}
 
-                {/* Submit Button */}
                 <MDBBtn type="submit" className='mb-4' size='lg' disabled={loading}>
                   {loading ? <span>Loading...</span> : 'Register'}
                 </MDBBtn>
@@ -168,6 +134,6 @@ const SignUp: React.FC = () => {
       </MDBCard>
     </MDBContainer>
   );
-}
+};
 
 export default SignUp;

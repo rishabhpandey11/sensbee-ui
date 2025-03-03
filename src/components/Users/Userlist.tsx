@@ -8,106 +8,101 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
-import { useNavigate } from 'react-router-dom';
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { userService } from '../../service/services/user.service';
+import { Snackbar, Alert } from '@mui/material';
 
 interface Column {
-  id: 'id' | 'name' | 'email' | 'password' | 'admin' | 'action';
+  id: 'id' | 'name' | 'email' | 'verified' | 'action';
   label: string;
   minWidth?: number;
   align?: 'center' | 'left' | 'right';
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  verified: boolean;
 }
 
 const columns: Column[] = [
   { id: 'id', label: 'ID', minWidth: 50, align: 'center' },
   { id: 'name', label: 'Name', minWidth: 170 },
   { id: 'email', label: 'Email', minWidth: 200 },
-  { id: 'password', label: 'Password', minWidth: 150, align: 'center' },
-  { id: 'admin', label: 'Admin', minWidth: 100, align: 'center' },
+  { id: 'verified', label: 'Verified', minWidth: 100, align: 'center' },
   { id: 'action', label: 'Action', minWidth: 150, align: 'center' },
 ];
 
-interface Data {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-  admin: string; // Yes or No
-}
-
-function createData(id: number, name: string, email: string, password: string, admin: boolean): Data {
-  return { 
-    id, 
-    name, 
-    email, 
-    password, 
-    admin: admin ? 'Yes' : 'No' 
-  };
-}
-
-const initialRows = [
-  createData(1, 'John Doe', 'john.doe@example.com', 'password123', true),
-  createData(2, 'Jane Smith', 'jane.smith@example.com', 'abc456', false),
-  createData(3, 'Robert Brown', 'robert.brown@example.com', 'pass789', true),
-  createData(4, 'Emily Davis', 'emily.davis@example.com', 'secure321', false),
-  createData(5, 'Michael Wilson', 'michael.wilson@example.com', 'mypassword', true),
-  createData(6, 'Emma Johnson', 'emma.johnson@example.com', 'password456', false),
-  createData(7, 'Liam Miller', 'liam.miller@example.com', 'newpassword', true),
-  createData(8, 'Sophia Taylor', 'sophia.taylor@example.com', 'mypassword123', false),
-  createData(9, 'Olivia Anderson', 'olivia.anderson@example.com', 'test123', true),
-  createData(10, 'James Thomas', 'james.thomas@example.com', 'qwerty123', false),
-  createData(11, 'Isabella Harris', 'isabella.harris@example.com', 'zxcvbnm', true),
-  createData(12, 'Mason Moore', 'mason.moore@example.com', '12345678', false),
-  createData(13, 'Charlotte White', 'charlotte.white@example.com', 'password', true),
-  createData(14, 'Lucas Martin', 'lucas.martin@example.com', 'adminpass', false),
-  createData(15, 'Amelia Thompson', 'amelia.thompson@example.com', 'strongpassword', true),
-];
-
 export default function UserList() {
-  const [rows, setRows] = React.useState(initialRows);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = React.useState<'success' | 'error'>('success');
+  const queryClient = useQueryClient();
 
-  const navigate = useNavigate();
+  // Fetch users
+  const { data: users = [], isLoading, isError } = useQuery({
+    queryKey: ['users'],
+    queryFn: userService.listUsers,
+  });
 
+  // Mutation for deleting users
+  const deleteMutation = useMutation({
+    mutationFn: userService.deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setSnackbarMessage('User successfully deleted!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+    },
+    onError: () => {
+      setSnackbarMessage('Error deleting user.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    },
+  });
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
+  // Mutation for verifying users
+  const verifyMutation = useMutation({
+    mutationFn: userService.verifyUsers,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setSnackbarMessage('User successfully verified!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+    },
+    onError: () => {
+      setSnackbarMessage('Error verifying user.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    },
+  });
 
+  const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
-  // Function to delete a row by its id
-  const handleDelete = (id: number) => {
-    const updatedRows = rows.filter(row => row.id !== id);
-    setRows(updatedRows);
-  };
+  const handleDelete = (id: string) => deleteMutation.mutate(id);
+  const handleVerify = (id: string) => verifyMutation.mutate(id);
 
-
-
-
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error fetching data</div>;
 
   return (
     <Paper sx={{ width: '100%' }}>
       <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="user table">
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
                 <TableCell
                   key={column.id}
                   align={column.align || 'left'}
-                  style={{
-                    minWidth: column.minWidth,
-                    backgroundColor: '#f5f5f5',
-                    fontWeight: 'bold',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 2, 
-                  }}
+                  style={{ minWidth: column.minWidth, fontWeight: 'bold', backgroundColor: '#f5f5f5' }}
                 >
                   {column.label}
                 </TableCell>
@@ -115,60 +110,58 @@ export default function UserList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                  {columns.map((column) => {
-                    let value;
-                    
-                    if (column.id === 'action') {
-                      value = (
-                        <>
-                          
-                          <Button 
-                            variant="outlined" 
-                            color="success" 
-                            size="small" 
-                            onClick={() => navigate('/user/edit')} 
-                            sx={{ mr: 1 }}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            color="error" 
-                            size="small" 
-                            onClick={() => handleDelete(row.id)}
-                          >
-                            Delete
-                          </Button>
-                        </>
-                      );
-                    } else {
-                      value = row[column.id as keyof Data];
-                    }
-
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {value}
-                      </TableCell>
+            {users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => (
+              <TableRow hover key={user.id}>
+                {columns.map((column) => {
+                  let value;
+                  if (column.id === 'action') {
+                    value = (
+                      <>
+                        <Button variant="outlined" color="error" size="small" onClick={() => handleDelete(user.id)}>
+                          Delete
+                        </Button>
+                      </>
                     );
-                  })}
-                </TableRow>
-              ))}
+                  } else if (column.id === 'verified') {
+                    value = user.verified ? (
+                      'Yes'
+                    ) : (
+                      <Button variant="outlined" color="primary" size="small" onClick={() => handleVerify(user.id)}>
+                        Verify
+                      </Button>
+                    );
+                  } else {
+                    value = user[column.id as keyof User];
+                  }
+
+                  return <TableCell key={column.id} align={column.align}>{value}</TableCell>;
+                })}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={rows.length}
+        count={users.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
+      {/* Snackbar for success or error */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={8000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Snackbar at the top
+      >
+        <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }

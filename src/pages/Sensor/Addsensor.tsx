@@ -1,109 +1,171 @@
-import React, { useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { Button, Card, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
-function Addsensor() {
-    const [values, setValues] = useState({
-        name: '',
-        description: '',
-        position: '' // Position is now a text input
-    });
+type Column = {
+  name: string;
+  val_type: string;
+  val_unit: string;
+};
 
-    const [error, setError] = useState(null); // Handles form validation errors
+const AddSensor: React.FC = () => {
+  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  // Local state for sensor details
+  const [sensor, setSensor] = useState({
+    name: '',
+    description: '',
+  });
 
-    // Generic handler for all form field changes
-    const handleChange = (e) => {
-        setValues({ ...values, [e.target.name]: e.target.value });
+  // Local state for position (as a single string)
+  const [position, setPosition] = useState('');
+
+  // Local state for columns
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [isAddingColumn, setIsAddingColumn] = useState<boolean>(false); // Track whether the user is adding a column
+
+  // Handle input change for Name & Description
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSensor({ ...sensor, [name]: value });
+  };
+
+  // Handle input change for Position
+  const handlePositionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPosition(e.target.value);
+  };
+
+  // Start the process of adding a new column
+  const startAddColumn = () => {
+    setColumns([...columns, { name: '', val_type: '', val_unit: '' }]);
+    setIsAddingColumn(true); // User is adding a new column
+  };
+
+  // Handle column input changes (name, value type, and unit of column)
+  const handleColumnChange = (index: number, field: keyof Column, value: string) => {
+    const updatedColumns = [...columns];
+    updatedColumns[index][field] = value;
+    setColumns(updatedColumns);
+  };
+
+  // Cancel adding a column (remove the last column in the array)
+  const cancelAddColumn = () => {
+    const updatedColumns = [...columns];
+    updatedColumns.pop(); // Remove the last column entry (cancel column addition)
+    setColumns(updatedColumns);
+    setIsAddingColumn(false); // Stop adding a new column
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!sensor.name || !sensor.description || !position) {
+      setError('Please fill out all required fields');
+      return;
+    }
+
+    const sensorData = {
+      name: sensor.name,
+      description: sensor.description,
+      position, // Position entered as a string
+      columns,  // Columns with values entered by the user
     };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError(null); // Reset error message
+    console.log('Submitted Sensor Data:', sensorData); // Debugging log
+    alert('Sensor data saved locally (check console)');
+  };
 
-        // Basic validation: Check if all fields are filled in
-        if (!values.name || !values.description || !values.position) {
-            setError("All fields are required!");
-            return;
-        }
+  return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <Card style={{ width: '35rem', padding: '20px' }}>
+        <Card.Body>
+          <Card.Title>Add Sensor Details</Card.Title>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        // Prepare post data
-        const postData = {
-            name: values.name,
-            description: values.description,
-            position: values.position
-        };
+          <Form onSubmit={handleSubmit}>
+            {/* Name & Description Section */}
+            <Card className="mb-3 p-3">
+              <Form.Group controlId="formName">
+                <Form.Label>Name</Form.Label>
+                <Form.Control type="text" name="name" value={sensor.name} onChange={handleChange} />
+              </Form.Group>
 
-        // Send POST request to the API
-        axios.post('http://localhost:3000/sensor_details', postData)
-            .then((res) => {
-                console.log('Data submitted successfully:', res);
-                navigate('/sensor'); // Redirect to sensor list page after successful submit
-            })
-            .catch((err) => {
-                console.log('Error submitting data:', err);
-                setError("Failed to submit sensor data.");
-            });
-    };
-
-    return (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-            <Card style={{ width: '30rem', padding: '20px', borderRadius: '10px', margin: '20px auto' }}>
-                <Card.Body>
-                    <Card.Title style={{ marginBottom: '20px', fontSize: '2rem' }}>Add Sensor Details</Card.Title>
-
-                    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Error message for validation */}
-
-                    <Form onSubmit={handleSubmit}>
-
-                        {/* Name Section */}
-                        <Form.Group className="mb-3" controlId="formName">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter sensor name"
-                            />
-                        </Form.Group>
-
-                        {/* Description Section */}
-                        <Form.Group className="mb-3" controlId="formDescription">
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="description"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter sensor description"
-                            />
-                        </Form.Group>
-
-                        {/* Position Section (Text Input) */}
-                        <Form.Group className="mb-3" controlId="formPosition">
-                            <Form.Label>Position</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="position"
-                                onChange={handleChange} // Use the generic handler
-                                placeholder="Enter position [50.68322, 10.91858]"
-                            />
-                        </Form.Group>
-
-                        {/* Button Section */}
-                        <div className="d-flex justify-content-between">
-                            <Button variant="dark" onClick={() => navigate(-1)}>Back</Button> {/* Go back to the previous page */}
-                            <Button variant="success" type="submit">Submit</Button>
-                        </div>
-                    </Form>
-                </Card.Body>
+              <Form.Group controlId="formDescription">
+                <Form.Label>Description</Form.Label>
+                <Form.Control type="text" name="description" value={sensor.description} onChange={handleChange} />
+              </Form.Group>
             </Card>
-        </div>
-    );
-}
 
-export default Addsensor;
+            {/* Position Section */}
+            <Card className="mb-3 p-3">
+              <Card.Title>Position</Card.Title>
+              <Form.Group controlId="formPosition">
+                <Form.Control
+                  type="text"
+                  placeholder="Enter position e.g.[50.68322,10.91858]"
+                  value={position}
+                  onChange={handlePositionChange}
+                />
+              </Form.Group>
+            </Card>
+
+            {/* Columns Section */}
+            <Card className="mb-3 p-3">
+              <Card.Title>Columns</Card.Title>
+              {columns.map((col, index) => (
+                <div key={index} className="d-flex gap-2 mb-2">
+                  <Form.Control
+                    type="text"
+                    placeholder="Name"
+                    value={col.name}
+                    onChange={(e) => handleColumnChange(index, 'name', e.target.value)}
+                  />
+                  <Form.Control
+                    type="text"
+                    placeholder="Value Type"
+                    value={col.val_type}
+                    onChange={(e) => handleColumnChange(index, 'val_type', e.target.value)}
+                  />
+                  <Form.Control
+                    type="text"
+                    placeholder="Unit"
+                    value={col.val_unit}
+                    onChange={(e) => handleColumnChange(index, 'val_unit', e.target.value)}
+                  />
+                </div>
+              ))}
+              {!isAddingColumn && (
+                <Button variant="outline-primary" onClick={startAddColumn}>
+                  + Add Column
+                </Button>
+              )}
+              {isAddingColumn && (
+                <div className="d-flex gap-2">
+                  <Button variant="outline-secondary" onClick={cancelAddColumn}>
+                    Cancel
+                  </Button>
+                  <Button variant="outline-primary" onClick={startAddColumn}>
+                    Add Another Column
+                  </Button>
+                </div>
+              )}
+            </Card>
+
+            {/* Actions Section */}
+            <div className="d-flex justify-content-between">
+              <Button variant="dark" onClick={() => navigate(-1)}>
+                Back
+              </Button>
+              <Button variant="success" type="submit">
+                Submit
+              </Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
+    </div>
+  );
+};
+
+export default AddSensor;

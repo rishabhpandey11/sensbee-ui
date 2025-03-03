@@ -1,21 +1,20 @@
 import React from 'react'
-import Userhero from '../../components/Users/Userhero'
+import Sensorlist from '../../components/Sensor/Sensorlist'
+import Sensorhero from '../../components/Sensor/Sensorhero'
 import Box from '@mui/material/Box';
-import Userlist from '../../components/Users/Userlist'
 
-const Userlistpage = () => {
+const Sensorslistpage = () => {
   return (
    
      <div>
-  
     
      <Box sx={{ display: 'flex' }}>
-     
+    
        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
        <Box height={30} />
-       <Userhero/> 
+       <Sensorhero/> 
        <Box height={30} />
-       <Userlist/>
+       <Sensorlist/>
         
         
          
@@ -25,4 +24,4 @@ const Userlistpage = () => {
   )
 }
 
-export default Userlistpage
+export default Sensorslistpage
