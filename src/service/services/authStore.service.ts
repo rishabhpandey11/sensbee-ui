@@ -8,6 +8,7 @@ interface AuthState {
   session: string | null;
   authenticated: boolean;
   isHydrated: boolean; // ✅ New state to track when Zustand is ready
+  user: any; // Add the user state to store user data
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; message?: string }>;
   signup: (userData: UserRegistration) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
@@ -16,9 +17,9 @@ interface AuthState {
 const authStore = create<AuthState>()(
   persist(
     immer((set, get) => ({
-      session: null,
+      session: localStorage.getItem("auth_token"), // Initialize session from localStorage
       user: null,
-      authenticated: false,
+      authenticated: localStorage.getItem("auth_token") !== null, // Check if there's a token on startup
       isHydrated: false, // ✅ Set false initially
 
       // User Login
@@ -48,7 +49,7 @@ const authStore = create<AuthState>()(
       logout: async () => {
         localStorage.removeItem("auth_token");
         set({ session: null, authenticated: false });
-        window.location.href = "/login"; // Redirect after logout
+        window.location.href = "/"; // Redirect after logout
       },
     })),
     {
@@ -61,4 +62,4 @@ const authStore = create<AuthState>()(
   )
 );
 
-export default authStore;
+export default authStore;  

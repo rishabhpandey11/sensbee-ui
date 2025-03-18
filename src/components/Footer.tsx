@@ -13,7 +13,7 @@ const Footer = () => {
                     >
                         &copy; {new Date().getFullYear()} Copyright:{' '}
                         <h3  >
-                          Smart City UI
+                        Sensbee
                           </h3>
                     </div>
                 </MDBFooter>

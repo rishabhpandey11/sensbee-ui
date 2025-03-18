@@ -35,6 +35,7 @@ import Userlistpage from '../../pages/User/Userlistpage';
 import Sensorslistpage from '../../pages/Sensor/Sensorslistpage';
 import  {useNavigate}  from 'react-router-dom';
 import Adduser from '../../pages/User/Adduser';
+import authStore from '../../service/services/authStore.service'
 
 
 
@@ -150,6 +151,12 @@ function ToolbarActionsSearch() {
         setAnchorEl(null);
     };
     const navigate = useNavigate();
+    const logout = authStore((state) => state.logout); // Get logout function from Zustand
+
+    const handleLogout = async () => {
+        await logout(); // Call Zustand logout function
+     
+    };
 
     return (
         <Stack direction="row">
@@ -180,6 +187,7 @@ function ToolbarActionsSearch() {
                     onClose={handleClose}
                 >
                     <MenuItem  onClick={() => navigate('/profile')}>Profile</MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     
                 </Menu>
             </div>
@@ -194,7 +202,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
             variant="caption"
             sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
-            {mini ? '© UI' : `© ${new Date().getFullYear()} Smart City UI`}
+            {mini ? '© UI' : `© ${new Date().getFullYear()} Sensbee`}
         </Typography>
     );
 }
@@ -203,7 +211,7 @@ function CustomAppTitle() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <LocationCityIcon fontSize="large" color="primary" />
-            <Typography variant="h6">Smart City UI</Typography>
+            <Typography variant="h6">Sensbee</Typography>
 
         </Stack>
     );

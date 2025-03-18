@@ -33,6 +33,8 @@ import Editsensor from '../../pages/Sensor/Editsensor';
 import Addsensor from '../../pages/Sensor/Addsensor';
 import UserDashboard from './UserDashboard';
 import Sensorslistpage from '../../pages/Sensor/Sensorslistpage';
+import authStore from '../../service/services/authStore.service'
+
 
 
 
@@ -118,6 +120,8 @@ function DemoPageContent({ pathname }: { pathname: string }) {
 
 function ToolbarActionsSearch() {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const navigate = useNavigate();
+    const logout = authStore((state) => state.logout);
 
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -126,6 +130,11 @@ function ToolbarActionsSearch() {
 
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleLogout = async () => {
+        await logout(); // Call Zustand logout function
+        navigate("/login"); // Redirect to login page
     };
 
     return (
@@ -156,8 +165,8 @@ function ToolbarActionsSearch() {
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                 >
-                    <MenuItem onClick={handleClose}>Profile</MenuItem>
-                    <MenuItem onClick={handleClose}>My account</MenuItem>
+                    <MenuItem  onClick={() => navigate('/profile')}>Profile</MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
             </div>
 
@@ -171,7 +180,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
             variant="caption"
             sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
-            {mini ? '© UI' : `© ${new Date().getFullYear()} Smart City UI`}
+            {mini ? '© UI' : `© ${new Date().getFullYear()} Sensbee`}
         </Typography>
     );
 }
@@ -180,7 +189,7 @@ function CustomAppTitle() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <LocationCityIcon fontSize="large" color="primary" />
-            <Typography variant="h6">Smart City UI</Typography>
+            <Typography variant="h6">Sensbee</Typography>
 
         </Stack>
     );

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { MDBBtn, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBInput } from 'mdb-react-ui-kit';
 import { LoginCredentials } from '../service/types/auth.types';
@@ -9,15 +9,22 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginCredentials>();
 
-  const {  login } = authStore((state) => ({
+  const { login, authenticated } = authStore((state) => ({
     login: state.login,
+    authenticated: state.authenticated,
+
   }));
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // ✅ Redirect to /admin if already logged in
+  useEffect(() => {
+    if (authenticated) {
+      navigate('/admin');
+    }
+  }, [authenticated, navigate]);
 
-  // ✅ Regular User Login
   const onSubmit: SubmitHandler<LoginCredentials> = async (data) => {
     setLoading(true);
     setErrorMessage(null);
@@ -25,7 +32,7 @@ const LoginPage: React.FC = () => {
     try {
       const response = await login(data);
       if (response.success) {
-        navigate('/admin'); // Redirect on successful login
+        navigate('/admin');
       } else {
         setErrorMessage(response.message || 'Invalid credentials');
       }

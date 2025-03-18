@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../../service/services/user.service';
 import { Snackbar, Alert } from '@mui/material';
+import { useNavigate } from "react-router-dom";
 
 interface Column {
   id: 'id' | 'name' | 'email' | 'verified' | 'action';
@@ -31,7 +32,7 @@ const columns: Column[] = [
   { id: 'name', label: 'Name', minWidth: 170 },
   { id: 'email', label: 'Email', minWidth: 200 },
   { id: 'verified', label: 'Verified', minWidth: 100, align: 'center' },
-  { id: 'action', label: 'Action', minWidth: 150, align: 'center' },
+  { id: 'action', label: 'Action', minWidth: 250, align: 'center' },
 ];
 
 export default function UserList() {
@@ -41,6 +42,7 @@ export default function UserList() {
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
   const [snackbarSeverity, setSnackbarSeverity] = React.useState<'success' | 'error'>('success');
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch users
   const { data: users = [], isLoading, isError } = useQuery({
@@ -117,8 +119,31 @@ export default function UserList() {
                   if (column.id === 'action') {
                     value = (
                       <>
-                        <Button variant="outlined" color="error" size="small" onClick={() => handleDelete(user.id)}>
+                        <Button 
+                          variant="outlined" 
+                          color="error" 
+                          size="small" 
+                          onClick={() => handleDelete(user.id)}
+                          sx={{ mr: 1 }}
+                        >
                           Delete
+                        </Button>
+                        <Button 
+                          variant="outlined" 
+                          color="primary" 
+                          size="small" 
+                          onClick={() => navigate("/user/read", { state: { user } })}
+                          sx={{ mr: 1 }}
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          variant="outlined" 
+                          color="secondary" 
+                          size="small" 
+                          onClick={() => navigate("/user/edit", { state: { user } })}
+                        >
+                          Edit
                         </Button>
                       </>
                     );
@@ -156,7 +181,7 @@ export default function UserList() {
         open={openSnackbar}
         autoHideDuration={8000}
         onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Snackbar at the top
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}

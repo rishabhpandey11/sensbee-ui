@@ -47,9 +47,13 @@ async revokeRole(userId: string, roleName: string): Promise<void> {
   await api.delete(`/api/users/${userId}/role`, {
     data: JSON.stringify(roleName)
   });
-}
+},
 
-
+async updateUser(userId: string, userData: { name: string; email: string }): Promise<UserInfo> {
+    const response = await api.post<UserInfo>(`/api/users/${userId}/edit/info`, userData);
+    return response.data;
+  },
+  
 };
 
 export default userService;

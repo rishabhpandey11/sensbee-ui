@@ -121,6 +121,8 @@ const AdminDashboard = () => {
                 </Grid>
             </Grid>
 
+            <Box height={20} />
+
             {/* Footer */}
             <Footer />
         </div>

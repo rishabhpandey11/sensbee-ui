@@ -8,7 +8,7 @@ import Linechart from '../../components/Charts/Linechart';
 import Areabump from '../../components/Charts/Areabump';
 import Barchart from '../../components/Charts/Barchart';
 import Footer from '../../components/Footer';
-import Sensorlistuser from './Sensorlistuser';
+import SensorListforguest from './SensorListforguest';
 
 const GuestDashboard = () => {
     return (
@@ -84,7 +84,7 @@ const GuestDashboard = () => {
                                         >
                                             Sensor list
                                         </Typography>
-                                        <Sensorlistuser />
+                                        <SensorListforguest />
                                     </CardContent>
                                 </Card>
 

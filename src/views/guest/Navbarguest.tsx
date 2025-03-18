@@ -76,7 +76,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
             variant="caption"
             sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
-            {mini ? '© UI' : `© ${new Date().getFullYear()} Smart City UI`}
+            {mini ? '© UI' : `© ${new Date().getFullYear()} Sensbee`}
         </Typography>
     );
 }
@@ -85,7 +85,7 @@ function CustomAppTitle() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <LocationCityIcon fontSize="large" color="primary" />
-            <Typography variant="h6">Smart City UI</Typography>
+            <Typography variant="h6">Sensbee</Typography>
 
         </Stack>
     );

@@ -1,7 +1,7 @@
 import React from 'react'
 import Sensorhero from '../../components/Sensor/Sensorhero'
 import Box from '@mui/material/Box';
-import Sensorlist from '../../components/Sensor/Sensorlist'
+import SensorListforguest from './SensorListforguest'
 
 const Sensorslistuserpage = () => {
   return (
@@ -14,7 +14,7 @@ const Sensorslistuserpage = () => {
        <Box height={30} />
        <Sensorhero/> 
        <Box height={30} />
-       <Sensorlist/>
+       <SensorListforguest/>
         
         
          

@@ -1,125 +1,96 @@
 import React, { useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { userService } from '../../service/services/user.service';
+import { TextField, Button, Card, CardContent, Typography, CircularProgress, Snackbar, Alert } from '@mui/material';
 
-function Editsensor() {
-    const [values, setValues] = useState({
-        name: 'John Doe', // Example default value
-        email: 'johndoe@example.com', // Example default value
-        password: 'password123', // Example default value
-        admin: '' // Admin is now a dropdown (Yes/No)
-    });
+function EditUser() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const user = location.state?.user;
 
-    const [error, setError] = useState(null); // Handles form validation errors
+  // Redirect if no user data was passed
+  if (!user) {
+    navigate('/user/list');
+    return null;
+  }
 
-    const navigate = useNavigate();
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-    // Handle change for the admin dropdown only
-    const handleChange = (e) => {
-        setValues({ ...values, [e.target.name]: e.target.value });
-    };
+  const updateMutation = useMutation({
+    mutationFn: () => userService.updateUser(user.id, { name, email }),
+    onSuccess: () => {
+      setSnackbarMessage('User updated successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setTimeout(() => navigate('/user/list'), 2000); // Redirect after success
+    },
+    onError: () => {
+      setSnackbarMessage('Error updating user.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    },
+  });
 
-    // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError(null); // Reset error message
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate();
+  };
 
-        // Basic validation: Check if admin is selected
-        if (!values.admin) {
-            setError("Please select admin status (Yes or No)!");
-            return;
-        }
+  return (
+    <Card sx={{ maxWidth: 500, margin: 'auto', mt: 5, p: 3 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>Edit User</Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            margin="normal"
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            disabled={updateMutation.isLoading}
+          >
+            {updateMutation.isLoading ? <CircularProgress size={24} /> : 'Save'}
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            sx={{ mt: 2, ml: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </form>
+      </CardContent>
 
-        // Prepare post data (only admin is editable, but sending all fields)
-        const postData = {
-            name: values.name,
-            email: values.email,
-            password: values.password,
-            admin: values.admin
-        };
-
-        // Send POST request to the API
-        axios.post('http://localhost:3000/sensor_details', postData)
-            .then((res) => {
-                console.log('Data submitted successfully:', res);
-                navigate('/sensor'); // Redirect to sensor list page after successful submit
-            })
-            .catch((err) => {
-                console.log('Error submitting data:', err);
-                setError("Failed to submit sensor data.");
-            });
-    };
-
-    return (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-            <Card style={{ width: '30rem', padding: '20px', borderRadius: '10px', margin: '20px auto' }}>
-                <Card.Body>
-                    <Card.Title style={{ marginBottom: '20px', fontSize: '2rem' }}>Edit Sensor Admin Status</Card.Title>
-
-                    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Error message for validation */}
-
-                    <Form onSubmit={handleSubmit}>
-
-                        {/* Name Section (Read-Only) */}
-                        <Form.Group className="mb-3" controlId="formName">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={values.name}
-                                readOnly
-                            />
-                        </Form.Group>
-
-                        {/* Email Section (Read-Only) */}
-                        <Form.Group className="mb-3" controlId="formEmail">
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="email"
-                                value={values.email}
-                                readOnly
-                            />
-                        </Form.Group>
-
-                        {/* Password Section (Read-Only) */}
-                        <Form.Group className="mb-3" controlId="formPassword">
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control
-                                type="password"
-                                name="password"
-                                value={values.password}
-                                readOnly
-                            />
-                        </Form.Group>
-
-                        {/* Admin Section (Editable) */}
-                        <Form.Group className="mb-3" controlId="formAdmin">
-                            <Form.Label>Admin</Form.Label>
-                            <Form.Select 
-                                name="admin" 
-                                onChange={handleChange} 
-                                value={values.admin}
-                            >
-                                <option value="">Select Yes or No</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </Form.Select>
-                        </Form.Group>
-
-                        {/* Button Section */}
-                        <div className="d-flex justify-content-between">
-                            <Button variant="dark" onClick={() => navigate(-1)}>Back</Button> {/* Go back to the previous page */}
-                            <Button variant="success" type="submit">Submit</Button>
-                        </div>
-                    </Form>
-                </Card.Body>
-            </Card>
-        </div>
-    );
+      {/* Snackbar for success/error messages */}
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
+        <Alert severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Card>
+  );
 }
 
-export default Editsensor;
+export default EditUser;

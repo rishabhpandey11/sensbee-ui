@@ -16,12 +16,33 @@ import Card from 'react-bootstrap/Card';
 import backgroundImage1 from './images/easytouse.jpg';
 import backgroundImage2 from './images/resources.jpg';
 import backgroundImage3 from './images/plant1.jpg';
-import Footer from '../Footer'
+import Footer from '../Footer';
 import { useNavigate } from 'react-router-dom';
+import authStore from '../../service/services/authStore.service'; // Import Zustand store
 
 const LandingPage: React.FC = () => {
-    const [showBasic, setShowBasic] = useState<boolean>(false); // Typed state for the collapse toggle
+    const [showBasic, setShowBasic] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    // ✅ Get authentication state from Zustand
+    const { authenticated } = authStore();
+
+    // ✅ Handle navigation based on authentication state
+    const handleAdminClick = () => {
+        if (authenticated) {
+            navigate('/admin'); // Redirect logged-in admin to admin panel
+        } else {
+            navigate('/login'); // Otherwise, go to login
+        }
+    };
+
+    const handleUserClick = () => {
+        if (authenticated) {
+            navigate('/dashboard'); // Redirect logged-in user to user dashboard
+        } else {
+            navigate('/login');
+        }
+    };
 
     return (
         <>
@@ -41,14 +62,12 @@ const LandingPage: React.FC = () => {
                             <MDBNavbarNav right className="mb-2 mb-lg-0">
                                 <MDBNavbarItem active>
                                     <MDBNavbarLink aria-current="page" href="#" style={{ color: 'black', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                                        Small City UI
+                                       Sensbee
                                     </MDBNavbarLink>
                                 </MDBNavbarItem>
+                              
                                 <MDBNavbarItem>
-                                    <MDBNavbarLink href="#">Home</MDBNavbarLink>
-                                </MDBNavbarItem>
-                                <MDBNavbarItem>
-                                    <MDBNavbarLink href="#">About</MDBNavbarLink>
+                                    <MDBNavbarLink  onClick={() => navigate('/about')}>About</MDBNavbarLink>
                                 </MDBNavbarItem>
                             </MDBNavbarNav>
                         </MDBCollapse>
@@ -60,7 +79,6 @@ const LandingPage: React.FC = () => {
                     className="p-5 text-center bg-image"
                     style={{
                         backgroundImage: `url(${backgroundImage})`,
-                       
                         height: '90vh',
                         width: '100%',
                     }}
@@ -68,53 +86,31 @@ const LandingPage: React.FC = () => {
                     <div className="mask" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
                         <div className="d-flex justify-content-center align-items-center h-100">
                             <div className="text-white">
-                                <h1 className="mb-3">Welcome to Smart City Solutions</h1>
+                                <h1 className="mb-3">Welcome to Sensbee</h1>
                                 <h4 className="mb-3">Your City, Your Control.</h4>
                                 <h5 className="mb-3">Login to proceed further</h5>
 
-                                <div
-                                    style={{
-                                        display: 'flex', // Make the parent a flex container
-                                        justifyContent: 'center', // Align the stack to the right
-                                        alignItems: 'center', // Vertically center the stack
-                                    }}
-                                >
-                                    <Stack direction="horizontal" gap={3}>
-                                        <Button
-                                            style={{
-                                                color: 'white',
-                                                fontWeight: 'bold',
-                                                backgroundColor: '#1b9e3e',
-                                                boxShadow: 'none', // Remove button shadow
-                                            }}
-                                            onClick={() => navigate('/login')}
-                                        >
-                                            Admin
-                                        </Button>
-                                        <Button
-                                            style={{
-                                                color: 'white',
-                                                fontWeight: 'bold',
-                                                backgroundColor: 'black',
-                                                boxShadow: 'none', // Remove button shadow
-                                            }}
-                                            onClick={() => navigate('/login')}
-                                        >
-                                            User
-                                        </Button>
-                                        <Button
-                                            style={{
-                                                color: 'black',
-                                                fontWeight: 'bold',
-                                                backgroundColor: 'white',
-                                                boxShadow: 'none', // Remove button shadow
-                                            }}
-                                            onClick={() => navigate('/guest')}
-                                        >
-                                            Guest
-                                        </Button>
-                                    </Stack>
-                                </div>
+                                {/* ✅ Buttons to Navigate */}
+                                <Stack direction="horizontal" gap={3} className="justify-content-center">
+                                    <Button
+                                        style={{ color: 'white', fontWeight: 'bold', backgroundColor: '#1b9e3e', boxShadow: 'none' }}
+                                        onClick={handleAdminClick}
+                                    >
+                                        Admin
+                                    </Button>
+                                    <Button
+                                        style={{ color: 'white', fontWeight: 'bold', backgroundColor: 'black', boxShadow: 'none' }}
+                                        onClick={handleUserClick}
+                                    >
+                                        User
+                                    </Button>
+                                    <Button
+                                        style={{ color: 'black', fontWeight: 'bold', backgroundColor: 'white', boxShadow: 'none' }}
+                                        onClick={() => navigate('/guest')}
+                                    >
+                                        Guest
+                                    </Button>
+                                </Stack>
                             </div>
                         </div>
                     </div>
@@ -125,10 +121,10 @@ const LandingPage: React.FC = () => {
                 {/* Feature Section */}
                 <div
                     style={{
-                        display: 'flex', // Make the parent a flex container
-                        justifyContent: 'center', // Align the stack to the center
-                        alignItems: 'center', // Vertically center the stack
-                        height: '50vh', // Full height of the viewport
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '50vh',
                     }}
                 >
                     <Stack direction="horizontal" gap={3}>
@@ -137,10 +133,7 @@ const LandingPage: React.FC = () => {
                                 <Card.Img
                                     variant="top"
                                     src={backgroundImage1}
-                                    style={{
-                                        height: '200px', // Adjust image height as needed
-                                        objectFit: 'cover', // Ensures the image covers the card area without distortion
-                                    }}
+                                    style={{ height: '200px', objectFit: 'cover' }}
                                 />
                                 <Card.Body>
                                     <Card.Title>Easy to Use, Powerful Results.</Card.Title>
@@ -152,10 +145,7 @@ const LandingPage: React.FC = () => {
                                 <Card.Img
                                     variant="top"
                                     src={backgroundImage2}
-                                    style={{
-                                        height: '200px', // Adjust image height as needed
-                                        objectFit: 'cover', // Ensures the image covers the card area without distortion
-                                    }}
+                                    style={{ height: '200px', objectFit: 'cover' }}
                                 />
                                 <Card.Body>
                                     <Card.Title>Streamline Your City, Save Your Resources.</Card.Title>
@@ -167,10 +157,7 @@ const LandingPage: React.FC = () => {
                                 <Card.Img
                                     variant="top"
                                     src={backgroundImage3}
-                                    style={{
-                                        height: '200px', // Adjust image height as needed
-                                        objectFit: 'cover', // Ensures the image covers the card area without distortion
-                                    }}
+                                    style={{ height: '200px', objectFit: 'cover' }}
                                 />
                                 <Card.Body>
                                     <Card.Title>Sustainable Cities, Sustainable Solutions.</Card.Title>
@@ -183,7 +170,8 @@ const LandingPage: React.FC = () => {
 
             <div style={{ height: '20vh' }} />
 
-           <Footer/>
+            {/* Footer */}
+            <Footer />
         </>
     );
 };

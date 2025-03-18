@@ -1,171 +1,221 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { Button, Card, Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { sensorService } from '../../service/services/sensor.service';
+import FloatingLabel from 'react-bootstrap/FloatingLabel';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Stack from 'react-bootstrap/Stack';
 
-type Column = {
-  name: string;
-  val_type: string;
-  val_unit: string;
-};
+function Addsensor() {
+    const [sensorData, setSensorData] = useState({
+        name: '',
+        description: '',
+        position: '',  // Initialize position as an empty string
+        columns: [{ name: '', val_type: '', val_unit: '' }],
+        permissions: [{ operations: [], role_name: '' }],  // permissions should be an array of objects
+        storage: { params: {}, variant: '' }, // params as an object
+    });
 
-const AddSensor: React.FC = () => {
-  const [error, setError] = useState<string>('');
-  const navigate = useNavigate();
-
-  // Local state for sensor details
-  const [sensor, setSensor] = useState({
-    name: '',
-    description: '',
-  });
-
-  // Local state for position (as a single string)
-  const [position, setPosition] = useState('');
-
-  // Local state for columns
-  const [columns, setColumns] = useState<Column[]>([]);
-  const [isAddingColumn, setIsAddingColumn] = useState<boolean>(false); // Track whether the user is adding a column
-
-  // Handle input change for Name & Description
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSensor({ ...sensor, [name]: value });
-  };
-
-  // Handle input change for Position
-  const handlePositionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPosition(e.target.value);
-  };
-
-  // Start the process of adding a new column
-  const startAddColumn = () => {
-    setColumns([...columns, { name: '', val_type: '', val_unit: '' }]);
-    setIsAddingColumn(true); // User is adding a new column
-  };
-
-  // Handle column input changes (name, value type, and unit of column)
-  const handleColumnChange = (index: number, field: keyof Column, value: string) => {
-    const updatedColumns = [...columns];
-    updatedColumns[index][field] = value;
-    setColumns(updatedColumns);
-  };
-
-  // Cancel adding a column (remove the last column in the array)
-  const cancelAddColumn = () => {
-    const updatedColumns = [...columns];
-    updatedColumns.pop(); // Remove the last column entry (cancel column addition)
-    setColumns(updatedColumns);
-    setIsAddingColumn(false); // Stop adding a new column
-  };
-
-  // Handle form submission
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!sensor.name || !sensor.description || !position) {
-      setError('Please fill out all required fields');
-      return;
-    }
-
-    const sensorData = {
-      name: sensor.name,
-      description: sensor.description,
-      position, // Position entered as a string
-      columns,  // Columns with values entered by the user
+    const mutation = useMutation({
+        mutationFn: sensorService.createSensor,
+        onSuccess: () => {
+            alert('Sensor added successfully!');
+            setSensorData({
+                name: '',
+                description: '',
+                position: '',
+                columns: [{ name: '', val_type: '', val_unit: '' }],
+                permissions: [{ operations: [], role_name: '' }],
+                storage: { params: {}, variant: '' },
+            });
+            console.log(sensorData);
+        },
+     
+        onError: (error) => {
+            console.error('Error adding sensor:', error);
+        },
+        
+    });
+ 
+    const handleInputChange = (field: string, value: any) => {
+        setSensorData((prev) => ({ ...prev, [field]: value }));
     };
 
-    console.log('Submitted Sensor Data:', sensorData); // Debugging log
-    alert('Sensor data saved locally (check console)');
-  };
+    const handleColumnChange = (index: number, field: string, value: string) => {
+        setSensorData((prev) => ({
+            ...prev,
+            columns: prev.columns.map((col, i) => (i === index ? { ...col, [field]: value } : col)),
+        }));
+    };
 
-  return (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-      <Card style={{ width: '35rem', padding: '20px' }}>
-        <Card.Body>
-          <Card.Title>Add Sensor Details</Card.Title>
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+    const addColumn = () => {
+        setSensorData((prev) => ({
+            ...prev,
+            columns: [...prev.columns, { name: '', val_type: '', val_unit: '' }],
+        }));
+    };
 
-          <Form onSubmit={handleSubmit}>
-            {/* Name & Description Section */}
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="formName">
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" name="name" value={sensor.name} onChange={handleChange} />
-              </Form.Group>
+    const removeColumn = (index: number) => {
+        setSensorData((prev) => ({
+            ...prev,
+            columns: prev.columns.filter((_, i) => i !== index),
+        }));
+    };
 
-              <Form.Group controlId="formDescription">
-                <Form.Label>Description</Form.Label>
-                <Form.Control type="text" name="description" value={sensor.description} onChange={handleChange} />
-              </Form.Group>
-            </Card>
+    const handleStorageParamsChange = (value: string) => {
+        try {
+            const parsedValue = JSON.parse(value);
+            if (typeof parsedValue === 'object' && parsedValue !== null) {
+                setSensorData((prev) => ({
+                    ...prev,
+                    storage: { ...prev.storage, params: parsedValue },
+                }));
+            } else {
+                alert('Params should be a valid JSON object');
+            }
+        } catch (error) {
+            alert('Invalid JSON format');
+        }
+    };
 
-            {/* Position Section */}
-            <Card className="mb-3 p-3">
-              <Card.Title>Position</Card.Title>
-              <Form.Group controlId="formPosition">
-                <Form.Control
-                  type="text"
-                  placeholder="Enter position e.g.[50.68322,10.91858]"
-                  value={position}
-                  onChange={handlePositionChange}
-                />
-              </Form.Group>
-            </Card>
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
 
-            {/* Columns Section */}
-            <Card className="mb-3 p-3">
-              <Card.Title>Columns</Card.Title>
-              {columns.map((col, index) => (
-                <div key={index} className="d-flex gap-2 mb-2">
-                  <Form.Control
-                    type="text"
-                    placeholder="Name"
-                    value={col.name}
-                    onChange={(e) => handleColumnChange(index, 'name', e.target.value)}
-                  />
-                  <Form.Control
-                    type="text"
-                    placeholder="Value Type"
-                    value={col.val_type}
-                    onChange={(e) => handleColumnChange(index, 'val_type', e.target.value)}
-                  />
-                  <Form.Control
-                    type="text"
-                    placeholder="Unit"
-                    value={col.val_unit}
-                    onChange={(e) => handleColumnChange(index, 'val_unit', e.target.value)}
-                  />
-                </div>
-              ))}
-              {!isAddingColumn && (
-                <Button variant="outline-primary" onClick={startAddColumn}>
-                  + Add Column
-                </Button>
-              )}
-              {isAddingColumn && (
-                <div className="d-flex gap-2">
-                  <Button variant="outline-secondary" onClick={cancelAddColumn}>
-                    Cancel
-                  </Button>
-                  <Button variant="outline-primary" onClick={startAddColumn}>
-                    Add Another Column
-                  </Button>
-                </div>
-              )}
-            </Card>
+        // Convert position to an array of numbers
+        const position = sensorData.position
+            .split(',')
+            .map((coord) => parseFloat(coord.trim()));
 
-            {/* Actions Section */}
-            <div className="d-flex justify-content-between">
-              <Button variant="dark" onClick={() => navigate(-1)}>
-                Back
-              </Button>
-              <Button variant="success" type="submit">
-                Submit
-              </Button>
+        // Validate position (check if it's an array of numbers)
+        if (position.some(isNaN)) {
+            alert('Position should be a valid comma-separated list of numbers');
+            return;
+        }
+
+        // Prepare the formatted data for submission
+        const formattedData = {
+            name: sensorData.name,
+            description: sensorData.description,
+            position, // Array of numbers for position
+            columns: sensorData.columns, // Array of columns
+            permissions: sensorData.permissions, // Permissions array with operations and role_name
+            storage: {
+                params: sensorData.storage.params, // Params as an object
+                variant: sensorData.storage.variant, // Variant as a string
+            },
+        };
+
+        console.log('Formatted Data for API:', formattedData);  // Log the data for debugging
+
+        mutation.mutate(formattedData); // Call the mutation function with the formatted data
+    };
+
+    return (
+        <Container className="d-flex justify-content-center align-items-center vh-100">
+            <div style={{ maxWidth: '600px', width: '100%', height: '80vh', overflowY: 'auto', padding: '15px', border: '1px solid #ccc', borderRadius: '10px' }}>
+                <h5 className="text-center">Add Sensor</h5>
+                <Form onSubmit={handleSubmit}>
+                    {/* Render columns */}
+                    {sensorData.columns.map((column, index) => (
+                        <Row className="mb-3" key={index}>
+                            <Col md="4">
+                                <Form.Label>Name</Form.Label>
+                                <Form.Control type="text" value={column.name} onChange={(e) => handleColumnChange(index, 'name', e.target.value)} />
+                            </Col>
+                            <Col md="4">
+                                <Form.Label>Value Type </Form.Label>
+                                <Form.Control type="text" placeholder='INT,FLOAT,STRING' value={column.val_type} onChange={(e) => handleColumnChange(index, 'val_type', e.target.value)} />
+                            </Col>
+                            <Col md="3">
+                                <Form.Label>Value Unit</Form.Label>
+                                <Form.Control type="text" value={column.val_unit} onChange={(e) => handleColumnChange(index, 'val_unit', e.target.value)} />
+                            </Col>
+                            <Col md="1" className="d-flex align-items-end">
+                                <Button variant="danger" onClick={() => removeColumn(index)} disabled={sensorData.columns.length === 1}>
+                                    -
+                                </Button>
+                            </Col>
+                        </Row>
+                    ))}
+                    <Button variant="primary" onClick={addColumn}>
+                        Add Column
+                    </Button>
+
+                    <Container style={{ height: '3vh' }} />
+
+                    {/* Input fields for name, description, and position */}
+                    <FloatingLabel controlId="floatingName" label="Name" className="mb-2">
+                        <Form.Control type="text" value={sensorData.name} onChange={(e) => handleInputChange('name', e.target.value)} />
+                    </FloatingLabel>
+                    <FloatingLabel controlId="floatingDescription" label="Description" className="mb-2">
+                        <Form.Control type="text" value={sensorData.description} onChange={(e) => handleInputChange('description', e.target.value)} />
+                    </FloatingLabel>
+                    <FloatingLabel controlId="floatingPosition" label="Position (e.g., 50.35, 34.32)" className="mb-2">
+                        <Form.Control type="text" value={sensorData.position} onChange={(e) => handleInputChange('position', e.target.value)} />
+                    </FloatingLabel>
+
+                    <h5 className="text-center">Permissions</h5>
+                    {['INFO', 'READ', 'WRITE'].map((operation) => (
+                        <Form.Check
+                            key={operation}
+                            type="checkbox"
+                            label={operation}
+                            checked={sensorData.permissions[0].operations.includes(operation)} // Update the operations inside the permissions array
+                            onChange={() =>
+                                handleInputChange('permissions', [{
+                                    ...sensorData.permissions[0],
+                                    operations: sensorData.permissions[0].operations.includes(operation)
+                                        ? sensorData.permissions[0].operations.filter((op) => op !== operation)
+                                        : [...sensorData.permissions[0].operations, operation],
+                                }])
+                            }
+                        />
+                    ))}
+
+                    <Form.Group controlId="validationCustomRole" className="mt-3">
+                        <Form.Label>Role</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={sensorData.permissions[0].role_name} // Access role_name inside the permissions array
+                            onChange={(e) => handleInputChange('permissions', [{ ...sensorData.permissions[0], role_name: e.target.value }])}
+                        />
+                    </Form.Group>
+
+                    <h5 className="text-center mt-3">Storage</h5>
+                    <Row className="mb-3">
+                        <Col md="6">
+                            <Form.Label>Params</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={JSON.stringify(sensorData.storage.params, null, 2)}
+                                onChange={(e) => handleStorageParamsChange(e.target.value)}
+                            />
+                        </Col>
+                        <Col md="6">
+                            <Form.Label>Variant</Form.Label>
+                            <Form.Control
+                                 as="textarea"
+                                 rows={3}
+                                value={sensorData.storage.variant}
+                                placeholder=' DEFAULT, RINGBUFFERCOUNT, RINGBUFFERINTERVAL'
+                                onChange={(e) => handleInputChange('storage', { ...sensorData.storage, variant: e.target.value })}
+                            />
+                        </Col>
+                    </Row>
+
+                    <Stack direction="horizontal" gap={3} className="mt-3">
+                        <Button type="submit" variant="success" disabled={mutation.isLoading}>
+                            {mutation.isLoading ? 'Submitting...' : 'Submit'}
+                        </Button>
+                    </Stack>
+                </Form>
             </div>
-          </Form>
-        </Card.Body>
-      </Card>
-    </div>
-  );
-};
+        </Container>
+    );
+}
 
-export default AddSensor;
+export default Addsensor;
