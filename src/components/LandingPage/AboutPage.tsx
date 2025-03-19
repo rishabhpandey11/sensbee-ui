@@ -1,5 +1,5 @@
 import React from 'react';
-import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle, MDBCardText, MDBBtn, MDBCardImage } from 'mdb-react-ui-kit';
+import { MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle, MDBCardText } from 'mdb-react-ui-kit';
 
 const AboutPage: React.FC = () => {
     return (
@@ -9,12 +9,7 @@ const AboutPage: React.FC = () => {
                     <MDBCard className="my-5">
                         <MDBCardBody>
                             {/* Add an image above the card content */}
-                            <MDBCardImage
-                                src="https://via.placeholder.com/500x300" // Replace with your actual image URL
-                                alt="Sensbee"
-                                position="top"
-                                className="img-fluid mb-4"
-                            />
+                        
 
                             <MDBCardTitle className="text-center mb-4">
                                 <h2>About Sensbee</h2>

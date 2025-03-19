@@ -1,71 +1,57 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import api from '../axios'; // Ensure axios is correctly set up in your project
-import { SensorData } from '../types/sensor.types'; // Ensure SensorData is correctly typed
+import api from '../axios'; 
+import { SensorData } from '../types/sensor.types';
 
-// Interface for sensor response
+// Interface for API response
 interface SensorResponse {
   id: string;
   name: string;
 }
 
-// Interface for sensor data query parameters (optional)
-interface SensorDataQuery {
-  from?: string;
-  to?: string;
-  limit?: number;
-  ordering?: 'ASC' | 'DESC' | null;
-}
-
-// The sensorService to handle API calls related to sensors
+// Sensor Service
 export const sensorService = {
-  // Create a new sensor
   async createSensor(sensorData: SensorData): Promise<string> {
     try {
       const response = await api.post<string>('/api/sensors/create', sensorData);
-      return response.data; // Return the sensor ID or a success message
+      return response.data;
     } catch (error) {
-      throw new Error('Failed to create sensor: ' + error.message); // Error handling
+      throw new Error('Failed to create sensor: ' + (error as Error).message);
     }
   },
 
-  // List all sensors
   async listSensors(): Promise<SensorResponse[]> {
     try {
       const response = await api.get<SensorResponse[]>('/api/sensors/list');
-      return response.data; // Return the list of sensors
+      return response.data;
     } catch (error) {
-      throw new Error('Failed to fetch sensors: ' + error.message); // Error handling
+      throw new Error('Failed to fetch sensors: ' + (error as Error).message);
     }
   },
 
-  // Get details of a single sensor by its ID
-  async getSensorDetails(sensorId: string): Promise<any> {
+  async getSensorDetails(sensorId: string): Promise<SensorData> {
     try {
-      const response = await api.get(`/api/sensors/${sensorId}`);
-      return response.data; // Return sensor details
-      console.log(response)
+      const response = await api.get<SensorData>(`/api/sensors/${sensorId}`);
+      return response.data;
+      console.log(response.data);
     } catch (error) {
-      throw new Error('Failed to fetch sensor details: ' + error.message); // Error handling
+      throw new Error('Failed to fetch sensor details: ' + (error as Error).message);
     }
   },
 
-  // Edit an existing sensor
   async editSensor(sensorId: string, sensorData: Partial<SensorData>): Promise<void> {
     try {
       await api.put(`/api/sensors/${sensorId}/edit`, sensorData);
     } catch (error) {
-      throw new Error('Failed to edit sensor: ' + error.message); // Error handling
+      throw new Error('Failed to edit sensor: ' + (error as Error).message);
     }
   },
 
-  // Delete a sensor by its ID
   async deleteSensor(sensorId: string): Promise<void> {
     try {
       await api.delete(`/api/sensors/${sensorId}/delete`);
     } catch (error) {
-      throw new Error('Failed to delete sensor: ' + error.message); // Error handling
+      throw new Error('Failed to delete sensor: ' + (error as Error).message);
     }
   }
 };
 
-export default sensorService 
+export default sensorService;

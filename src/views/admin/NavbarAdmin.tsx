@@ -29,13 +29,13 @@ import Menu from '@mui/material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Charts from '../../pages/Charts';
 import AdminDashboard from './AdminDashboard';
-import Editsensor from '../../pages/Sensor/Editsensor';
 import Addsensor from '../../pages/Sensor/Addsensor';
 import Userlistpage from '../../pages/User/Userlistpage';
 import Sensorslistpage from '../../pages/Sensor/Sensorslistpage';
 import  {useNavigate}  from 'react-router-dom';
 import Adduser from '../../pages/User/Adduser';
 import authStore from '../../service/services/authStore.service'
+import CabinOutlinedIcon from '@mui/icons-material/CabinOutlined';
 
 
 
@@ -99,6 +99,7 @@ const NAVIGATION: Navigation = [
         title: 'Charts',
         icon: <BarChartIcon />,
     },
+   
 ];
 
 const demoTheme = createTheme({
@@ -128,8 +129,8 @@ function DemoPageContent({ pathname }: { pathname: string }) {
             return <Sensorslistpage />;
         case '/charts':
             return <Charts />;
-        case '/sensor/edit':
-            return <Editsensor />;
+         
+      
           
        
         default:
@@ -160,6 +161,18 @@ function ToolbarActionsSearch() {
 
     return (
         <Stack direction="row">
+             <IconButton
+                    size="large"
+                    aria-label="account of current user"
+                    aria-controls="menu-appbar"
+                    aria-haspopup="true"
+                    onClick={()=>(navigate('/'))}
+                    color="inherit"
+                >
+                    <CabinOutlinedIcon />
+                </IconButton>
+
+
             <div>
                 <IconButton
                     size="large"
@@ -191,6 +204,7 @@ function ToolbarActionsSearch() {
                     
                 </Menu>
             </div>
+           
 
         </Stack>
     );

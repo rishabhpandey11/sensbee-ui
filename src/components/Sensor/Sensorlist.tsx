@@ -13,7 +13,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sensorService } from '../../service/services/sensor.service';
 
 export default function SensorList() {
@@ -22,12 +22,25 @@ export default function SensorList() {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [sensorToDelete, setSensorToDelete] = React.useState<string | null>(null);
 
-  // Fetch sensors using React Query
+  const queryClient = useQueryClient();
+
+  // Fetch sensors
   const { data: sensors = [], isLoading, isError } = useQuery({
     queryKey: ['sensors'],
     queryFn: sensorService.listSensors,
     staleTime: 1000 * 60 * 5,
-  
+  });
+
+  // Mutation for deleting a sensor
+  const deleteMutation = useMutation({
+    mutationFn: (sensorId: string) => sensorService.deleteSensor(sensorId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sensors'] }); // Refresh sensor list
+      closeDeleteDialog();
+    },
+    onError: (error) => {
+      console.error('Error deleting sensor:', error);
+    },
   });
 
   // Handle pagination
@@ -48,10 +61,11 @@ export default function SensorList() {
     setOpenDialog(false);
   };
 
-  // Handle delete (Currently just logs the action)
+  // Confirm delete
   const confirmDelete = () => {
-    console.log(`Deleted sensor with ID: ${sensorToDelete}`);
-    closeDeleteDialog();
+    if (sensorToDelete) {
+      deleteMutation.mutate(sensorToDelete);
+    }
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -81,13 +95,11 @@ export default function SensorList() {
                     sx={{ mr: 1 }}
                     component={Link}
                     to={`/sensor/read/${sensor.id}`}
-                    state={{ sensor }} // Pass sensor data as state
+                    state={{ sensor }}
                   >
                     View
                   </Button>
-                  <Button variant="outlined" color="success" size="small" sx={{ mr: 1 }} component={Link} to={`/sensor/edit/${sensor.id}`}>
-                    Edit
-                  </Button>
+                  
                   <Button variant="outlined" color="secondary" size="small" onClick={() => openDeleteDialog(sensor.id)}>
                     Delete
                   </Button>

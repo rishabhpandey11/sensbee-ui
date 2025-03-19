@@ -33,6 +33,9 @@ import Editsensor from '../../pages/Sensor/Editsensor';
 import Addsensor from '../../pages/Sensor/Addsensor';
 import UserDashboard from './UserDashboard';
 import Sensorslistpage from '../../pages/Sensor/Sensorslistpage';
+import { useNavigate } from 'react-router-dom';
+import CabinOutlinedIcon from '@mui/icons-material/CabinOutlined';
+
 import authStore from '../../service/services/authStore.service'
 
 
@@ -104,8 +107,6 @@ function DemoPageContent({ pathname }: { pathname: string }) {
             return <Addsensor />;
         case '/sensor/list':
             return <Sensorslistpage />;
-        case '/sensor/edit':
-            return <Editsensor />;
         case '/charts':
             return <Charts />;
 
@@ -139,6 +140,16 @@ function ToolbarActionsSearch() {
 
     return (
         <Stack direction="row">
+            <IconButton
+                    size="large"
+                    aria-label="account of current user"
+                    aria-controls="menu-appbar"
+                    aria-haspopup="true"
+                    onClick={()=>(navigate('/'))}
+                    color="inherit"
+                >
+                    <CabinOutlinedIcon />
+                </IconButton>
             <div>
                 <IconButton
                     size="large"

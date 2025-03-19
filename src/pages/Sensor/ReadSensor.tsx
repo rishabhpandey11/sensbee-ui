@@ -1,89 +1,104 @@
-// import React from 'react';
-// import { useParams } from 'react-router-dom';
-// import { useQuery } from '@tanstack/react-query';
-// import { Typography, Card, CardContent, Grid, TextField } from '@mui/material';
-// import { getSensorDetails } from '../../service/services/sensor.service'; // Ensure this import path is correct
-// import { SensorData } from '../../types'; // Assuming you have the proper SensorData type
 
-// const ReadSensor = () => {
-//   const { sensorId } = useParams<{ sensorId: string }>(); // Type the sensorId
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { sensorService } from '../../service/services/sensor.service';
+import { Card, CardContent, Typography, CircularProgress, List, ListItem, ListItemText, Button } from '@mui/material';
 
-//   // Use React Query to fetch sensor details
-//   const { data: sensor, isLoading, isError, error } = useQuery(
-//     ['sensor', sensorId], // Query key includes sensorId to refetch when it changes
-//     () => getSensorDetails(sensorId!), // Fetch sensor details using the function
-//     {
-//       enabled: !!sensorId, // Only run the query if sensorId is available
-//     }
-//   );
+export default function ReadSensor() {
+  const { sensorId } = useParams(); // Get sensor ID from URL
+  const navigate = useNavigate();
 
-//   // Loading State
-//   if (isLoading) return <Typography>Loading...</Typography>;
+  // Fetch sensor details
+  const { data: sensor, isLoading, isError } = useQuery({
+    queryKey: ['sensor', sensorId],
+    queryFn: () => sensorService.getSensorDetails(sensorId!),
+    enabled: !!sensorId, // Only run query if sensorId is available
+  });
 
-//   // Error Handling
-//   if (isError) return <Typography color="error">{(error as Error).message}</Typography>;
+  if (isLoading) return <CircularProgress />;
+  if (isError) return <div>Error loading sensor details</div>;
 
-//   // No Data State
-//   if (!sensor) return <Typography color="error">No sensor data available.</Typography>;
+  const handleBackClick = () => {
+    navigate(-1); // Navigate back to the sensor list page
+  };
 
-//   // Destructure sensor properties
-//   const { id, name, description, storage, permissions } = sensor;
+  const handleEditClick = () => {
+    navigate(`/sensor/${sensorId}/edit`); // Navigate to the edit page for the sensor
+  };
 
-//   return (
-//     <Card sx={{ maxWidth: 600, margin: 'auto', mt: 4, p: 2 }}>
-//       <CardContent>
-//         <Typography variant="h5" gutterBottom>Sensor Information</Typography>
+  return (
+    <Card sx={{ maxWidth: 600, margin: 'auto', mt: 4, p: 2 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>Sensor Details</Typography>
+        <Typography><strong>ID:</strong> {sensor?.sensor_info?.id}</Typography>
+        <Typography><strong>Name:</strong> {sensor?.sensor_info?.name}</Typography>
+        <Typography><strong>Description:</strong> {sensor?.sensor_info?.description}</Typography>
+        <Typography><strong>Owner:</strong> {sensor?.sensor_info?.owner}</Typography>
+        <Typography><strong>Storage Type:</strong> {sensor?.sensor_info?.storage_type}</Typography>
 
-//         <Grid container spacing={2}>
-//           {/* Sensor Name */}
-//           <Grid item xs={12}>
-//             <TextField fullWidth label="Sensor Name" value={name} InputProps={{ readOnly: true }} />
-//           </Grid>
+        {/* Display Positions */}
+        {sensor?.sensor_info?.position?.length > 0 && (
+          <>
+            <Typography variant="h6" sx={{ mt: 2 }}>Positions</Typography>
+            <List>
+              {sensor?.sensor_info?.position.map((pos, index) => (
+                <ListItem key={index} divider>
+                  <ListItemText primary={`Position ${index + 1}`} secondary={JSON.stringify(pos)} />
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
 
-//           {/* Sensor Description */}
-//           <Grid item xs={12}>
-//             <TextField fullWidth label="Description" value={description || 'No description'} InputProps={{ readOnly: true }} />
-//           </Grid>
+        {/* Display Columns */}
+        {sensor?.sensor_info?.columns?.length > 0 && (
+          <>
+            <Typography variant="h6" sx={{ mt: 2 }}>Columns</Typography>
+            <List>
+              {sensor?.sensor_info?.columns.map((col, index) => (
+                <ListItem key={index} divider>
+                  <ListItemText
+                    primary={`Column Name: ${col.name}`}
+                    secondary={
+                      <>
+                        <Typography><strong>Value Type:</strong> {col.val_type}</Typography>
+                        <Typography><strong>Value Unit:</strong> {col.val_unit}</Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
 
-//           {/* Sensor ID */}
-//           <Grid item xs={12}>
-//             <TextField fullWidth label="Sensor ID" value={id} InputProps={{ readOnly: true }} />
-//           </Grid>
+        {/* Display Permissions */}
+        <Typography variant="h6" sx={{ mt: 2 }}>Permissions</Typography>
+        <List>
+          {sensor?.sensor_info?.permissions?.map((perm, index) => (
+            <ListItem key={index} divider>
+              <ListItemText
+                primary={`Role ID: ${perm.role_id}`}
+                secondary={
+                  <>
+                    <Typography><strong>Allow Info:</strong> {perm.allow_info ? '✅ Yes' : '❌ No'}</Typography>
+                    <Typography><strong>Allow Read:</strong> {perm.allow_read ? '✅ Yes' : '❌ No'}</Typography>
+                    <Typography><strong>Allow Write:</strong> {perm.allow_write ? '✅ Yes' : '❌ No'}</Typography>
+                  </>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
 
-//           {/* Storage Variant */}
-//           <Grid item xs={12}>
-//             <TextField fullWidth label="Storage Variant" value={storage?.variant || 'Unknown'} InputProps={{ readOnly: true }} />
-//           </Grid>
+        {/* Buttons below */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+          <Button variant="outlined" onClick={handleBackClick}>Back</Button>
+          <Button variant="outlined" color="success" onClick={handleEditClick}>Edit</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-//           {/* Permissions Section */}
-//           {permissions && permissions.length > 0 && (
-//             <Grid item xs={12}>
-//               <Typography variant="h6" gutterBottom>Permissions</Typography>
-//               {/* Display permissions */}
-//               {permissions.map((perm, index) => (
-//                 <Grid container spacing={2} key={index}>
-//                   {/* Role Name */}
-//                   <Grid item xs={6}>
-//                     <TextField fullWidth label="Role Name" value={perm.role_name} InputProps={{ readOnly: true }} />
-//                   </Grid>
-
-//                   {/* Operations */}
-//                   <Grid item xs={6}>
-//                     <TextField
-//                       fullWidth
-//                       label="Operations"
-//                       value={perm.operations.join(', ')} // Join operations as a string
-//                       InputProps={{ readOnly: true }}
-//                     />
-//                   </Grid>
-//                 </Grid>
-//               ))}
-//             </Grid>
-//           )}
-//         </Grid>
-//       </CardContent>
-//     </Card>
-//   );
-// };
-
-// export default ReadSensor;

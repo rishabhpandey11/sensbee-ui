@@ -6,16 +6,10 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import Logout from './pages/Logout';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import ReadSensor from './pages/Sensor/ReadSensor';
-import SensorData from './components/Sensor/AnchorTemporaryDrawer';
 import { Navigate } from "react-router-dom";
-
 import NavbarAdmin from './views/admin/NavbarAdmin';
-
 import Addsensor from './pages/Sensor/Addsensor';
-import Editsensor from './pages/Sensor/Editsensor';
 import Charts from './pages/Charts';
-
 import Edituser from './pages/User/Edituser';
 import Adduser from './pages/User/Adduser';
 import ReadUser from './pages/User/ReadUser';
@@ -23,10 +17,10 @@ import Userlistpage from './pages/User/Userlistpage';
 import NavbarUser from './views/user/NavbarUser';
 import Sensorslistpage from './pages/Sensor/Sensorslistpage';
 import NavbarGuest from './views/guest/NavbarGuest';
-
 import Create from './pages/Sensor/Create';
 import ProtectedRoutes from './Routes/ProtectedRoutes'; // Import ProtectedRoutes
 import AboutPage from './components/LandingPage/AboutPage';
+import ReadSensor from './pages/Sensor/ReadSensor';
 
 const App: React.FC = () => {
   return (
@@ -47,10 +41,10 @@ const App: React.FC = () => {
           {/* Protected Routes (Require Authentication) */}
           <Route element={<ProtectedRoutes />}>
             {/* Sensor Routes */}
-            <Route path="/sensor/edit/:id" element={<Editsensor />} />
             <Route path="/sensor/list" element={<Sensorslistpage />} />
             <Route path="/sensor/add" element={<Addsensor />} />
-            
+            <Route path="/sensor/read/:sensorId" element={<ReadSensor />} />
+
             {/* User Routes */}
             <Route path="/user/edit" element={<Edituser />} />
             <Route path="/user/add" element={<Adduser />} />
